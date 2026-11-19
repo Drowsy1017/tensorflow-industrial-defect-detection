@@ -1,0 +1,46 @@
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# VS Code
+.vscode/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Dataset
+data/raw/
+data/manifests/
+dataset/
+
+# Training outputs
+outputs/
+logs/
+
+# Temporary files
+*.log
+*.tmp
+*.bak
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model checkpoints
+models/*.keras
+models/*.h5
+
+# Operating system
+.DS_Store
+Thumbs.db
+*:Zone.Identifier

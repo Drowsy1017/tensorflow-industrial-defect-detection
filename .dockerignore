@@ -1,0 +1,33 @@
+
+# Python virtual environments
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Git and editor settings
+.git/
+.vscode/
+
+# Raw training data
+data/
+dataset/
+
+# Training logs and analysis
+outputs/
+logs/
+
+# Temporary files
+*.log
+*.tmp
+
+# Local environment
+.env
+.env.*
+
+# Documentation and notebooks
+*.ipynb

@@ -1,0 +1,17 @@
+
+{
+  "model_filename": "mobilenetv2_finetuned.keras",
+  "model_type": "MobileNetV2",
+  "input_height": 192,
+  "input_width": 512,
+  "input_channels": 3,
+  "normalization": "mobilenet_v2_minus1_to1",
+  "class_names": [
+    "normal",
+    "defect"
+  ],
+  "defect_threshold": 0.10937318205833435,
+  "threshold_source": "validation",
+  "target_recall": 0.8,
+  "model_selection_metric": "validation_pr_auc"
+}
