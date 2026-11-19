@@ -12,12 +12,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # 安裝 TensorFlow GPU 與 FastAPI 需要的套件
+
+# 先複製依賴清單，利用 Docker Layer Cache
+COPY requirements.txt /app/requirements.txt
+
+# 安裝 Python 依賴
 RUN python -m pip install --upgrade pip && \
-    python -m pip install \
-        "tensorflow[and-cuda]==2.21.0" \
-        fastapi \
-        "uvicorn[standard]" \
-        python-multipart
+    python -m pip install -r requirements.txt
+
 
 # 只複製推論服務和模型
 COPY app/ /app/app/
