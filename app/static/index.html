@@ -1,0 +1,590 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Industrial Defect Detection</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0b1220;
+      --panel: #131e30;
+      --border: #27364d;
+      --text: #e8eef8;
+      --muted: #95a6bf;
+      --accent: #38bdf8;
+      --success: #34d399;
+      --danger: #fb7185;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 22px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .tag {
+      color: var(--success);
+      border: 1px solid #235b4b;
+      border-radius: 20px;
+      padding: 7px 12px;
+      font-size: 12px;
+    }
+
+    main {
+      width: min(1200px, 92%);
+      margin: 42px auto;
+    }
+
+    .intro {
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 4vw, 36px);
+    }
+
+    .intro p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 22px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      min-width: 0;
+    }
+
+    .panel h2 {
+      margin: 0 0 20px;
+      font-size: 17px;
+    }
+
+    .upload-zone {
+      min-height: 290px;
+      border: 2px dashed #41516b;
+      border-radius: 13px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 18px;
+      cursor: pointer;
+      transition: .2s;
+      background: #101a2b;
+      overflow: hidden;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--accent);
+      background: #14253c;
+    }
+
+    .upload-icon {
+      font-size: 42px;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+
+    .upload-zone p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    #preview {
+      display: none;
+      width: 100%;
+      max-height: 310px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    #fileName {
+      margin: 14px 0;
+      color: var(--muted);
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      min-height: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 15px;
+      width: 100%;
+      font-size: 15px;
+      font-weight: 700;
+      background: var(--accent);
+      color: #061321;
+      cursor: pointer;
+    }
+
+    button:hover:not(:disabled) {
+      background: #7dd3fc;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
+    .result-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    .status {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 12px 0 24px;
+    }
+
+    .waiting {
+      color: var(--muted);
+    }
+
+    .normal {
+      color: var(--success);
+    }
+
+    .defect {
+      color: var(--danger);
+    }
+
+    .metric {
+      margin: 20px 0;
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+    }
+
+    .metric-top span:first-child {
+      color: var(--muted);
+    }
+
+    .progress {
+      height: 11px;
+      border-radius: 20px;
+      background: #26354b;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width .35s ease;
+    }
+
+    .details {
+      margin-top: 26px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      font-size: 13px;
+      margin: 14px 0;
+    }
+
+    .detail-row span:first-child {
+      color: var(--muted);
+    }
+
+    .detail-row span:last-child {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    #message {
+      min-height: 20px;
+      font-size: 13px;
+      margin-top: 14px;
+      color: var(--muted);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 38px 0 25px;
+      padding: 0 15px;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding: 18px 4%;
+      }
+
+      .brand {
+        font-size: 16px;
+      }
+
+      main {
+        margin-top: 26px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="brand">
+    <span>AI</span> Industrial Inspection
+  </div>
+  <div class="tag" id="connectionStatus">API CONNECTION PENDING</div>
+</header>
+
+<main>
+
+  <section class="intro">
+    <h1>Surface Defect Detection</h1>
+    <p>
+      AI-powered industrial surface inspection using
+      TensorFlow and MobileNetV2.
+      Upload an image to evaluate potential defects.
+    </p>
+  </section>
+
+  <section class="layout">
+
+    <!-- Image upload panel -->
+    <div class="panel">
+      <h2>01 / Image Input</h2>
+
+      <input
+        id="fileInput"
+        type="file"
+        accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+        hidden
+      >
+
+      <div
+        class="upload-zone"
+        id="uploadZone"
+        role="button"
+        tabindex="0"
+        aria-label="Select an image for inspection"
+      >
+        <div id="uploadPlaceholder">
+          <div class="upload-icon">+</div>
+          <strong>Drop image here or click to upload</strong>
+          <p>PNG / JPG / JPEG · Maximum 10 MB</p>
+        </div>
+
+        <img id="preview" alt="Uploaded industrial surface">
+      </div>
+
+      <div id="fileName">No file selected</div>
+
+      <button id="predictButton" disabled>
+        Detect Defect
+      </button>
+
+      <div id="message" role="status" aria-live="polite"></div>
+    </div>
+
+    <!-- Inference result panel -->
+    <div class="panel">
+      <h2>02 / Inspection Result</h2>
+
+      <div class="result-label">Classification</div>
+      <div class="status waiting" id="predictionStatus">
+        WAITING
+      </div>
+
+      <div class="metric">
+        <div class="metric-top">
+          <span>Defect Score</span>
+          <strong id="scoreValue">—</strong>
+        </div>
+
+        <div class="progress">
+          <div class="progress-fill" id="scoreBar"></div>
+        </div>
+      </div>
+
+      <div class="details">
+        <div class="detail-row">
+          <span>Decision Threshold</span>
+          <span id="thresholdValue">—</span>
+        </div>
+
+        <div class="detail-row">
+          <span>Inference Request Time</span>
+          <span id="latencyValue">—</span>
+        </div>
+
+        <div class="detail-row">
+          <span>Model</span>
+          <span>MobileNetV2 Fine-tuned</span>
+        </div>
+
+        <div class="detail-row">
+          <span>Framework</span>
+          <span>TensorFlow</span>
+        </div>
+
+        <div class="detail-row">
+          <span>Uploaded Image</span>
+          <span id="resultFileName">—</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  Industrial Defect Detection · TensorFlow · FastAPI · Docker
+  <p>Experimental classification model. Not certified for production quality decisions.</p>
+</footer>
+
+<script>
+  const fileInput = document.getElementById("fileInput");
+  const uploadZone = document.getElementById("uploadZone");
+  const uploadPlaceholder = document.getElementById("uploadPlaceholder");
+  const preview = document.getElementById("preview");
+  const fileName = document.getElementById("fileName");
+  const predictButton = document.getElementById("predictButton");
+  const message = document.getElementById("message");
+
+  const predictionStatus = document.getElementById("predictionStatus");
+  const scoreValue = document.getElementById("scoreValue");
+  const scoreBar = document.getElementById("scoreBar");
+  const thresholdValue = document.getElementById("thresholdValue");
+  const latencyValue = document.getElementById("latencyValue");
+  const resultFileName = document.getElementById("resultFileName");
+
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+  let selectedFile = null;
+  let previewUrl = null;
+
+  function resetResult() {
+    predictionStatus.textContent = "WAITING";
+    predictionStatus.className = "status waiting";
+
+    scoreValue.textContent = "—";
+    scoreBar.style.width = "0%";
+
+    thresholdValue.textContent = "—";
+    latencyValue.textContent = "—";
+    resultFileName.textContent = "—";
+  }
+
+  function selectFile(file) {
+    if (!file) return;
+
+    const suffix = file.name.split(".").pop().toLowerCase();
+
+    if (
+      !["png", "jpg", "jpeg"].includes(suffix) ||
+      !["image/png", "image/jpeg"].includes(file.type)
+    ) {
+      message.textContent = "Please select a PNG or JPEG image.";
+      message.style.color = "#fb7185";
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      message.textContent = "Image exceeds the 10 MB upload limit.";
+      message.style.color = "#fb7185";
+      return;
+    }
+
+    selectedFile = file;
+    predictButton.disabled = false;
+
+    resetResult();
+
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    previewUrl = URL.createObjectURL(file);
+
+    preview.src = previewUrl;
+    preview.style.display = "block";
+    uploadPlaceholder.style.display = "none";
+
+    fileName.textContent = file.name;
+    message.textContent = "Image ready for inspection.";
+    message.style.color = "#95a6bf";
+  }
+
+  uploadZone.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  uploadZone.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      fileInput.click();
+    }
+  });
+
+  fileInput.addEventListener("change", event => {
+    selectFile(event.target.files[0]);
+  });
+
+  uploadZone.addEventListener("dragover", event => {
+    event.preventDefault();
+    uploadZone.classList.add("dragover");
+  });
+
+  uploadZone.addEventListener("dragleave", () => {
+    uploadZone.classList.remove("dragover");
+  });
+
+  uploadZone.addEventListener("drop", event => {
+    event.preventDefault();
+    uploadZone.classList.remove("dragover");
+
+    const file = event.dataTransfer.files[0];
+    selectFile(file);
+  });
+
+  predictButton.addEventListener("click", async () => {
+    if (!selectedFile) return;
+
+    predictButton.disabled = true;
+    predictButton.textContent = "Processing...";
+
+    predictionStatus.textContent = "ANALYZING";
+    predictionStatus.className = "status waiting";
+    message.textContent = "Running model inference...";
+    message.style.color = "#95a6bf";
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    const start = performance.now();
+
+    try {
+      const response = await fetch("/predict", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        let detail = "Inference request failed.";
+
+        try {
+          const errorBody = await response.json();
+          if (typeof errorBody.detail === "string") {
+            detail = errorBody.detail;
+          }
+        } catch (_) {
+          // Keep the default error message.
+        }
+
+        throw new Error(detail);
+      }
+
+      const data = await response.json();
+
+      const elapsed = performance.now() - start;
+
+      const isDefect = data.is_defect === true;
+
+      predictionStatus.textContent = isDefect
+        ? "DEFECT DETECTED"
+        : "NORMAL";
+
+      predictionStatus.className = isDefect
+        ? "status defect"
+        : "status normal";
+
+      const score = Number(data.defect_score);
+      const threshold = Number(data.threshold);
+
+      scoreValue.textContent = (score * 100).toFixed(2) + "%";
+
+      scoreBar.style.width =
+        Math.min(100, Math.max(0, score * 100)) + "%";
+
+      scoreBar.style.background = isDefect
+        ? "#fb7185"
+        : "#34d399";
+
+      thresholdValue.textContent = threshold.toFixed(4);
+
+      latencyValue.textContent = elapsed.toFixed(1) + " ms";
+      resultFileName.textContent = data.filename;
+
+      message.textContent = "Inspection completed successfully.";
+      message.style.color = "#34d399";
+
+    } catch (error) {
+      predictionStatus.textContent = "ERROR";
+      predictionStatus.className = "status defect";
+
+      message.textContent = error.message;
+      message.style.color = "#fb7185";
+
+    } finally {
+      predictButton.disabled = false;
+      predictButton.textContent = "Detect Defect";
+    }
+  });
+</script>
+
+</body>
+</html>

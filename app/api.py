@@ -7,12 +7,14 @@ import os
 import tensorflow as tf
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
-
+from fastapi.responses import FileResponse
 from .inference import DefectPredictor
 
 
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+INDEX_HTML = PROJECT_ROOT / "app" / "static" / "index.html"
 
 # =====================================
 # 1. 服務啟動時載入模型
@@ -45,6 +47,19 @@ app = FastAPI(
 # =====================================
 # 3. Health Check
 # =====================================
+
+
+# =====================================
+# Web UI 首頁
+# =====================================
+
+@app.get("/", include_in_schema=False)
+def index():
+    return FileResponse(
+        INDEX_HTML,
+        media_type="text/html"
+    )
+
 
 @app.get("/health")
 def health():
