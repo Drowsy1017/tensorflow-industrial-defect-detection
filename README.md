@@ -165,3 +165,158 @@ Example response:
 KolektorSDD2 is provided under a non-commercial license.
 
 Check the official dataset terms before redistribution or commercial use.
+
+
+## Reproducing the Training Pipeline
+
+Pretrained and fine-tuned `.keras` model files are not included
+in this repository.
+
+To reproduce the project, follow the steps below.
+
+### 1. Create a Python Environment
+
+Python 3.12 is recommended.
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+For NVIDIA GPU acceleration, a compatible Linux GPU environment
+and NVIDIA driver are required.
+
+### 2. Prepare the Dataset
+
+Download KolektorSDD2 from its official source:
+
+https://www.vicos.si/resources/kolektorsdd2/
+
+Organize the dataset as follows:
+
+```text
+data/
+└── raw/
+    ├── train/
+    │   ├── 10301.png
+    │   ├── 10301_GT.png
+    │   └── ...
+    └── test/
+        ├── 20000.png
+        ├── 20000_GT.png
+        └── ...
+```
+
+Each image must have a corresponding `_GT.png` mask.
+
+A defect label is assigned when the ground-truth mask
+contains at least one nonzero pixel.
+
+### 3. Generate Dataset Manifests
+
+```bash
+python -m src.prepare_dataset
+```
+
+The script generates:
+
+- data/manifests/train.csv
+- data/manifests/val.csv
+- data/manifests/test.csv
+
+The official test split is preserved. Validation samples
+are selected from the official training split.
+
+### 4. Train the Classification Head
+
+```bash
+python -m src.train
+```
+
+This trains the classification head while keeping
+the pretrained MobileNetV2 backbone frozen.
+
+Output:
+
+```text
+models/mobilenetv2_stage1.keras
+```
+
+### 5. Fine-tune MobileNetV2
+
+```bash
+python -m src.finetune
+```
+
+This fine-tunes the last 30 backbone layers
+while keeping BatchNormalization layers frozen.
+
+Output:
+
+```text
+models/mobilenetv2_finetuned.keras
+```
+
+### 6. Evaluate and Compare Models
+
+```bash
+python -m src.evaluate
+python -m src.compare_models
+```
+
+The comparison script evaluates both models on
+the validation split at a threshold of 0.5.
+
+Note: The current evaluate.py script evaluates
+the Stage 1 model by default.
+
+### 7. Tune the Classification Threshold
+
+```bash
+python -m src.tune_threshold
+```
+
+Set MODEL_PATH inside `src/tune_threshold.py`
+to the model being evaluated.
+
+Choose the classification threshold using validation data,
+not the official test set.
+
+Update `models/inference_config.json` with the selected
+model filename and threshold.
+
+### 8. Start the Inference API
+
+After generating the model file:
+
+```bash
+python -m uvicorn app.api:app --host 127.0.0.1 --port 8000
+```
+
+Swagger UI:
+
+http://127.0.0.1:8000/docs
+
+### 9. Build and Run with Docker
+
+```bash
+docker build -t tensorflow-defect-api:1.4 .
+
+docker run --rm --gpus all \
+  -p 8000:8000 \
+  tensorflow-defect-api:1.4
+```
+
+The Docker image expects the model referenced by
+`models/inference_config.json` to exist before building.
+
+### Reproducibility Notes
+
+- Training results may vary across hardware and software environments.
+- The validation split uses a fixed random seed.
+- Exact GPU execution results are not guaranteed to be bitwise identical.
+- The dataset is not redistributed with this repository.
+- Model checkpoints are not included in the Git repository.
+- Reported metrics describe experiments, not production certification.
+
