@@ -3,6 +3,20 @@
 
 An industrial surface defect classification project built with TensorFlow, MobileNetV2, FastAPI, and Docker GPU inference.
 
+
+## Web Interface Demo
+
+Upload an industrial surface image and inspect the
+classification result through the browser.
+
+![Industrial Defect Detection Web UI](docs/images/web_demo.png)
+
+The interface supports image preview, defect classification,
+defect score, decision threshold, and HTTP request latency.
+
+The displayed score is not a calibrated probability.
+
+
 ## Project Overview
 
 This project demonstrates an end-to-end computer vision workflow:
